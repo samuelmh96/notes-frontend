@@ -60,7 +60,7 @@ notes-frontend/
 ## 🔗 Backend
 
 Este frontend requiere el backend API:
-- Repositorio: [notes-backend](https://github.com/TU_USUARIO/notes-backend)
+- Repositorio: https://github.com/samuelmh96/notes-backend
 - URL API: `http://localhost:8000/api`
 
 ## 📦 Scripts disponibles
@@ -92,7 +92,7 @@ El tema de PrimeVue está configurado en `src/main.js`. Puedes cambiar el tema A
 
 ## 👨‍💻 Autor
 
-Tu Nombre - [@tu_usuario](https://github.com/TU_USUARIO)
+Samuel - https://github.com/samuelmh96/
 
 ## 📄 Licencia
 
