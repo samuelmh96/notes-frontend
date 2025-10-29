@@ -1,5 +1,99 @@
-# Vue 3 + Vite
+# Notes Frontend
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Frontend moderno para aplicación de gestión de notas con tags, construido con Vue 3, Vite y PrimeVue.
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+## 🚀 Tecnologías
+
+- **Vue 3** - Framework progresivo de JavaScript
+- **Vite** - Build tool ultra rápido
+- **PrimeVue** - Librería de componentes UI
+- **Vue Router** - Enrutamiento oficial de Vue
+- **Axios** - Cliente HTTP para API REST
+
+## 📋 Requisitos previos
+
+- Node.js 18+ 
+- npm o yarn
+- Backend API corriendo en `http://localhost:8000`
+
+## 🔧 Instalación
+```bash
+# Clonar el repositorio
+git clone https://github.com/TU_USUARIO/notes-frontend.git
+
+# Entrar al directorio
+cd notes-frontend
+
+# Instalar dependencias
+npm install
+
+# Ejecutar en modo desarrollo
+npm run dev
+```
+
+La aplicación estará disponible en `http://localhost:5173`
+
+## 🏗️ Estructura del proyecto
+```
+notes-frontend/
+├── src/
+│   ├── components/     # Componentes Vue
+│   │   └── NotesList.vue
+│   ├── router/         # Configuración de rutas
+│   ├── services/       # Servicios API
+│   │   └── api.js
+│   ├── views/          # Vistas principales
+│   ├── App.vue
+│   └── main.js
+├── public/
+└── package.json
+```
+
+## ✨ Características
+
+- ✅ Crear notas con título y contenido
+- ✅ Listar todas las notas
+- ✅ Diseño moderno con PrimeVue
+- ✅ Comunicación con API REST
+- ✅ Responsive design
+
+## 🔗 Backend
+
+Este frontend requiere el backend API:
+- Repositorio: [notes-backend](https://github.com/TU_USUARIO/notes-backend)
+- URL API: `http://localhost:8000/api`
+
+## 📦 Scripts disponibles
+```bash
+# Desarrollo
+npm run dev
+
+# Build para producción
+npm run build
+
+# Preview del build
+npm run preview
+
+# Linting
+npm run lint
+```
+
+## 🎨 Personalización
+
+El tema de PrimeVue está configurado en `src/main.js`. Puedes cambiar el tema Aura por otros presets disponibles.
+
+## 📝 Próximas características
+
+- [ ] Editar notas existentes
+- [ ] Eliminar notas
+- [ ] Sistema de tags
+- [ ] Filtrado y búsqueda
+- [ ] Autenticación de usuarios
+
+## 👨‍💻 Autor
+
+Tu Nombre - [@tu_usuario](https://github.com/TU_USUARIO)
+
+## 📄 Licencia
+
+Este proyecto es de código abierto y está disponible bajo la Licencia MIT.
