@@ -31,8 +31,6 @@ npm install
 npm run dev
 ```
 
-La aplicación estará disponible en `http://localhost:5173`
-
 ## 🏗️ Estructura del proyecto
 ```
 notes-frontend/
@@ -81,19 +79,3 @@ npm run lint
 ## 🎨 Personalización
 
 El tema de PrimeVue está configurado en `src/main.js`. Puedes cambiar el tema Aura por otros presets disponibles.
-
-## 📝 Próximas características
-
-- [ ] Editar notas existentes
-- [ ] Eliminar notas
-- [ ] Sistema de tags
-- [ ] Filtrado y búsqueda
-- [ ] Autenticación de usuarios
-
-## 👨‍💻 Autor
-
-Samuel - https://github.com/samuelmh96/
-
-## 📄 Licencia
-
-Este proyecto es de código abierto y está disponible bajo la Licencia MIT.
