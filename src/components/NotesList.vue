@@ -2,6 +2,51 @@
   <div class="notes-container">
     <h1>Mis Notas</h1>
     
+    <!-- Barra de búsqueda y filtros -->
+    <Card class="search-card">
+      <template #content>
+        <div class="search-section">
+          <div class="search-bar">
+            <IconField iconPosition="left" class="w-full">
+              <InputIcon class="pi pi-search" />
+              <InputText 
+                v-model="searchQuery"
+                @input="searchNotes"
+                placeholder="Buscar notas..."
+                class="w-full"
+              />
+            </IconField>
+          </div>
+          
+          <div class="filter-bar">
+            <Dropdown 
+              v-model="selectedTagFilter" 
+              :options="tagFilterOptions" 
+              optionLabel="name" 
+              optionValue="id"
+              placeholder="Filtrar por tag"
+              showClear
+              @change="filterByTag"
+              class="w-full"
+            />
+            
+            <Button 
+              label="Limpiar filtros" 
+              icon="pi pi-filter-slash"
+              severity="secondary"
+              text
+              @click="clearFilters"
+              v-if="searchQuery || selectedTagFilter"
+            />
+          </div>
+          
+          <div class="notes-count">
+            <span>{{ notes.length }} nota(s) encontrada(s)</span>
+          </div>
+        </div>
+      </template>
+    </Card>
+    
     <Card>
       <template #content>
         <form @submit.prevent="createNote" class="note-form">
@@ -48,7 +93,7 @@
       </template>
     </Card>
 
-    <div class="notes-list">
+    <div class="notes-list" v-if="notes.length > 0">
       <Card v-for="note in notes" :key="note.id">
         <template #title>
           <div class="note-header">
@@ -78,10 +123,17 @@
               :key="tag.id" 
               :value="tag.name"
               :severity="getTagColor(tag.id)"
+              @click="quickFilterByTag(tag.id)"
+              style="cursor: pointer;"
             />
           </div>
         </template>
       </Card>
+    </div>
+    
+    <div v-else class="empty-state">
+      <i class="pi pi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+      <p>No se encontraron notas</p>
     </div>
 
     <!-- Dialog para crear nuevo tag -->
@@ -132,7 +184,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useConfirm } from 'primevue/useconfirm'
 import api from '@/services/api'
 import Card from 'primevue/card'
@@ -141,8 +193,11 @@ import Textarea from 'primevue/textarea'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import MultiSelect from 'primevue/multiselect'
+import Dropdown from 'primevue/dropdown'
 import Dialog from 'primevue/dialog'
 import ConfirmDialog from 'primevue/confirmdialog'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
 
 const confirm = useConfirm()
 
@@ -151,6 +206,8 @@ const availableTags = ref([])
 const showNewTagDialog = ref(false)
 const showEditDialog = ref(false)
 const newTagName = ref('')
+const searchQuery = ref('')
+const selectedTagFilter = ref(null)
 
 const newNote = ref({
   title: '',
@@ -165,15 +222,19 @@ const editingNote = ref({
   selectedTags: []
 })
 
+const tagFilterOptions = computed(() => {
+  return availableTags.value
+})
+
 const tagColors = ['info', 'success', 'warning', 'danger']
 
 const getTagColor = (tagId) => {
   return tagColors[tagId % tagColors.length]
 }
 
-const fetchNotes = async () => {
+const fetchNotes = async (params = {}) => {
   try {
-    const response = await api.get('/notes')
+    const response = await api.get('/notes', { params })
     notes.value = response.data
   } catch (error) {
     console.error('Error fetching notes:', error)
@@ -187,6 +248,39 @@ const fetchTags = async () => {
   } catch (error) {
     console.error('Error fetching tags:', error)
   }
+}
+
+const searchNotes = () => {
+  const params = {}
+  if (searchQuery.value) {
+    params.search = searchQuery.value
+  }
+  if (selectedTagFilter.value) {
+    params.tag = selectedTagFilter.value
+  }
+  fetchNotes(params)
+}
+
+const filterByTag = () => {
+  const params = {}
+  if (searchQuery.value) {
+    params.search = searchQuery.value
+  }
+  if (selectedTagFilter.value) {
+    params.tag = selectedTagFilter.value
+  }
+  fetchNotes(params)
+}
+
+const quickFilterByTag = (tagId) => {
+  selectedTagFilter.value = tagId
+  filterByTag()
+}
+
+const clearFilters = () => {
+  searchQuery.value = ''
+  selectedTagFilter.value = null
+  fetchNotes()
 }
 
 const createNote = async () => {
@@ -234,7 +328,12 @@ const updateNote = async () => {
       tags: editingNote.value.selectedTags
     })
     showEditDialog.value = false
-    fetchNotes()
+    
+    // Mantener filtros activos después de actualizar
+    const params = {}
+    if (searchQuery.value) params.search = searchQuery.value
+    if (selectedTagFilter.value) params.tag = selectedTagFilter.value
+    fetchNotes(params)
   } catch (error) {
     console.error('Error updating note:', error)
   }
@@ -256,7 +355,12 @@ const confirmDelete = (noteId) => {
 const deleteNote = async (noteId) => {
   try {
     await api.delete(`/notes/${noteId}`)
-    fetchNotes()
+    
+    // Mantener filtros activos después de eliminar
+    const params = {}
+    if (searchQuery.value) params.search = searchQuery.value
+    if (selectedTagFilter.value) params.tag = selectedTagFilter.value
+    fetchNotes(params)
   } catch (error) {
     console.error('Error deleting note:', error)
   }
@@ -273,6 +377,29 @@ onMounted(() => {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
+}
+
+.search-card {
+  margin-bottom: 1.5rem;
+}
+
+.search-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.search-bar,
+.filter-bar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.notes-count {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
 }
 
 .note-form {
@@ -315,6 +442,17 @@ onMounted(() => {
   gap: 0.5rem;
   margin-top: 1rem;
   flex-wrap: wrap;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #999;
+}
+
+.empty-state p {
+  margin-top: 1rem;
+  font-size: 1.1rem;
 }
 
 .w-full {
