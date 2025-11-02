@@ -56,6 +56,17 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const updateProfile = async (profileData) => {
+    const response = await api.put('/profile', profileData)
+    setUser(response.data.user)
+    return response.data
+  }
+
+  const updatePassword = async (passwordData) => {
+    const response = await api.put('/password', passwordData)
+    return response.data
+  }
+
   // Inicializar token si existe
   if (token.value) {
     api.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
@@ -69,6 +80,8 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     register,
     logout,
-    fetchUser
+    fetchUser,
+    updateProfile,
+    updatePassword
   }
 })
