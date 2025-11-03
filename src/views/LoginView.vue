@@ -89,8 +89,8 @@ const handleLogin = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 90vh;
-  padding: 150px;
+  min-height: 100vh;
+  padding: 20px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
@@ -118,5 +118,16 @@ const handleLogin = async () => {
 
 .w-full {
   width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .auth-container {
+    padding: 15px;
+  }
+  
+  .auth-card {
+    max-width: 100%;
+  }
 }
 </style>

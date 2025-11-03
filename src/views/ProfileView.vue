@@ -195,7 +195,7 @@ const handleUpdatePassword = async () => {
 
 <style scoped>
 .profile-container {
-  max-width: 600px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 20px;
 }
@@ -216,5 +216,16 @@ const handleUpdatePassword = async () => {
 .form-field label {
   font-weight: 600;
   color: #333;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .profile-container {
+    padding: 15px;
+  }
+  
+  .profile-form {
+    padding: 0.5rem 0;
+  }
 }
 </style>
