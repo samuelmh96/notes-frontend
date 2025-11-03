@@ -30,7 +30,9 @@
           </div>
 
           <div class="notes-count">
-            <span>{{ notes.length }} nota(s) encontrada(s)</span>
+            <span>{{ totalNotes }} nota(s) total(es)</span>
+            <Dropdown v-model="perPage" :options="perPageOptions" optionLabel="label" optionValue="value"
+              @change="handlePerPageChange" class="per-page-selector" />
           </div>
         </div>
       </template>
@@ -82,6 +84,14 @@
       </Card>
     </div>
 
+    <!-- Agregar paginador aquí -->
+    <Paginator v-if="totalNotes > perPage" :rows="perPage" :totalRecords="totalNotes"
+      :first="(currentPage - 1) * perPage" @page="handlePageChange" class="notes-paginator" />
+
+      <div v-if="notes.length === 0" class="empty-state">
+  <!-- ... -->
+</div>
+
     <div v-else class="empty-state">
       <i class="pi pi-inbox" style="font-size: 3rem; color: #ccc;"></i>
       <p>No se encontraron notas</p>
@@ -118,6 +128,7 @@
 </template>
 
 <script setup>
+import Paginator from 'primevue/paginator'
 import { ref, computed, onMounted } from 'vue'
 import { useConfirm } from 'primevue/useconfirm'
 import api from '@/services/api'
@@ -147,6 +158,18 @@ const selectedTagFilter = ref(null)
 
 const showOnlyFavorites = ref(false)
 const sortBy = ref('date_desc')
+
+const currentPage = ref(1)
+const perPage = ref(10)
+const totalNotes = ref(0)
+const lastPage = ref(1)
+
+const perPageOptions = [
+  { label: '5 por página', value: 5 },
+  { label: '10 por página', value: 10 },
+  { label: '20 por página', value: 20 },
+  { label: '50 por página', value: 50 }
+]
 
 const sortOptions = [
   { label: 'Más recientes', value: 'date_desc' },
@@ -185,15 +208,21 @@ const getTagColor = (tagId) => {
 
 const fetchNotes = async (params = {}) => {
   try {
-    // Agregar parámetros de ordenamiento y favoritos
     const allParams = {
       ...params,
       sort: sortBy.value,
-      favorites: showOnlyFavorites.value
+      favorites: showOnlyFavorites.value,
+      page: currentPage.value,
+      per_page: perPage.value
     }
 
     const response = await api.get('/notes', { params: allParams })
-    notes.value = response.data
+
+    // Laravel paginate devuelve un objeto con data, meta, links
+    notes.value = response.data.data
+    totalNotes.value = response.data.total
+    lastPage.value = response.data.last_page
+    currentPage.value = response.data.current_page
   } catch (error) {
     console.error('Error fetching notes:', error)
   }
@@ -209,6 +238,7 @@ const fetchTags = async () => {
 }
 
 const searchNotes = () => {
+  currentPage.value = 1 // Agregar esta línea
   const params = {}
   if (searchQuery.value) {
     params.search = searchQuery.value
@@ -220,6 +250,7 @@ const searchNotes = () => {
 }
 
 const filterByTag = () => {
+  currentPage.value = 1 // Agregar esta línea
   const params = {}
   if (searchQuery.value) {
     params.search = searchQuery.value
@@ -240,6 +271,7 @@ const clearFilters = () => {
   selectedTagFilter.value = null
   showOnlyFavorites.value = false
   sortBy.value = 'date_desc'
+  currentPage.value = 1
   fetchNotes()
 }
 
@@ -434,6 +466,7 @@ const toggleFavorite = async (noteId) => {
 }
 
 const handleSortChange = () => {
+  currentPage.value = 1 // Agregar esta línea
   const params = {}
   if (searchQuery.value) params.search = searchQuery.value
   if (selectedTagFilter.value) params.tag = selectedTagFilter.value
@@ -442,6 +475,26 @@ const handleSortChange = () => {
 
 const toggleFavoritesFilter = () => {
   showOnlyFavorites.value = !showOnlyFavorites.value
+  currentPage.value = 1 // Agregar esta línea
+  const params = {}
+  if (searchQuery.value) params.search = searchQuery.value
+  if (selectedTagFilter.value) params.tag = selectedTagFilter.value
+  fetchNotes(params)
+}
+
+const handlePageChange = (event) => {
+  currentPage.value = event.page + 1 // PrimeVue usa base 0, Laravel usa base 1
+  const params = {}
+  if (searchQuery.value) params.search = searchQuery.value
+  if (selectedTagFilter.value) params.tag = selectedTagFilter.value
+  fetchNotes(params)
+
+  // Scroll suave al inicio
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const handlePerPageChange = () => {
+  currentPage.value = 1 // Reset a primera página
   const params = {}
   if (searchQuery.value) params.search = searchQuery.value
   if (selectedTagFilter.value) params.tag = selectedTagFilter.value
@@ -561,5 +614,21 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+.notes-count {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.per-page-selector {
+  min-width: 150px;
+}
+
+.notes-paginator {
+  margin-top: 2rem;
 }
 </style>
