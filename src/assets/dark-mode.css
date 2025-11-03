@@ -1,0 +1,231 @@
+/* Variables de color */
+:root {
+  /* Modo claro */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-card: #ffffff;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --border-color: #dee2e6;
+  --shadow: rgba(0, 0, 0, 0.1);
+}
+
+.dark-mode {
+  /* Modo oscuro */
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-card: #242424;
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --border-color: #3d3d3d;
+  --shadow: rgba(0, 0, 0, 0.5);
+}
+
+/* Transición suave */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Aplicar variables */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Cards y contenedores */
+.p-card {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.p-card .p-card-title,
+.p-card .p-card-content {
+  color: var(--text-primary) !important;
+}
+
+/* Inputs */
+.p-inputtext,
+.p-dropdown,
+.p-multiselect,
+.p-textarea {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.p-inputtext:enabled:focus,
+.p-dropdown:not(.p-disabled).p-focus,
+.p-multiselect:not(.p-disabled).p-focus,
+.p-textarea:enabled:focus {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25) !important;
+}
+
+/* Dropdowns y selects */
+.p-dropdown-panel,
+.p-multiselect-panel {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+.p-dropdown-item,
+.p-multiselect-item {
+  color: var(--text-primary) !important;
+}
+
+.p-dropdown-item:not(.p-disabled):hover,
+.p-multiselect-item:not(.p-disabled):hover {
+  background-color: var(--bg-secondary) !important;
+}
+
+/* Dialogs */
+.p-dialog {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+.p-dialog .p-dialog-header,
+.p-dialog .p-dialog-content {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+}
+
+.p-dialog .p-dialog-footer {
+  background-color: var(--bg-card) !important;
+  border-top-color: var(--border-color) !important;
+}
+
+/* Confirm dialog */
+.p-confirm-dialog {
+  background-color: var(--bg-card) !important;
+}
+
+.p-confirm-dialog .p-dialog-content {
+  color: var(--text-primary) !important;
+}
+
+/* Tabs */
+.p-tabview .p-tabview-nav {
+  background-color: var(--bg-card) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+.p-tabview .p-tabview-panels {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+}
+
+.p-tabview .p-tabview-nav li .p-tabview-nav-link {
+  color: var(--text-secondary) !important;
+}
+
+.p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+  color: var(--text-primary) !important;
+}
+
+/* Paginator */
+.p-paginator {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.p-paginator .p-paginator-pages .p-paginator-page {
+  color: var(--text-primary) !important;
+}
+
+.p-paginator .p-paginator-pages .p-paginator-page:not(.p-highlight):hover {
+  background-color: var(--bg-secondary) !important;
+}
+
+/* Toast */
+.p-toast .p-toast-message {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+.p-toast .p-toast-message .p-toast-message-content {
+  color: var(--text-primary) !important;
+}
+
+/* Navbar */
+.navbar {
+  background-color: var(--bg-card) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+/* Containers */
+.notes-container,
+.profile-container,
+.home {
+  background-color: transparent;
+}
+
+/* Empty state */
+.empty-state {
+  color: var(--text-secondary) !important;
+}
+
+/* Labels */
+label {
+  color: var(--text-primary) !important;
+}
+
+/* User name in navbar */
+.user-name {
+  color: var(--text-primary) !important;
+}
+
+/* Welcome banner */
+.welcome-banner h2,
+.welcome-banner p {
+  color: var(--text-primary) !important;
+}
+
+/* Auth pages - mantener gradiente */
+.auth-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+/* Search section */
+.search-section,
+.notes-count {
+  color: var(--text-primary) !important;
+}
+
+/* Note header */
+.note-header span {
+  color: var(--text-primary) !important;
+}
+
+/* Tags section */
+.tags-section label {
+  color: var(--text-primary) !important;
+}
+
+/* Form fields */
+.form-field label {
+  color: var(--text-primary) !important;
+}
+
+/* Icon fields */
+.p-icon-field {
+  color: var(--text-primary) !important;
+}
+
+.p-icon {
+  color: var(--text-secondary) !important;
+}
+
+/* Password input */
+.p-password input {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.p-password-panel {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
