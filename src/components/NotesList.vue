@@ -2,7 +2,7 @@
   <div class="notes-container">
     <h1>Mis Notas</h1>
     <Toast position="top-right" />
-    
+
     <!-- Barra de búsqueda y filtros -->
     <Card class="search-card">
       <template #content>
@@ -16,10 +16,17 @@
 
           <div class="filter-bar">
             <Dropdown v-model="selectedTagFilter" :options="tagFilterOptions" optionLabel="name" optionValue="id"
-              placeholder="Filtrar por tag" showClear @change="filterByTag" class="w-full" />
+              placeholder="Filtrar por tag" showClear @change="filterByTag" class="filter-item" />
 
-            <Button label="Limpiar filtros" icon="pi pi-filter-slash" severity="secondary" text @click="clearFilters"
-              v-if="searchQuery || selectedTagFilter" />
+            <Dropdown v-model="sortBy" :options="sortOptions" optionLabel="label" optionValue="value"
+              placeholder="Ordenar por" @change="handleSortChange" class="filter-item" />
+
+            <Button :label="showOnlyFavorites ? 'Mostrar todas' : 'Solo favoritas'"
+              :icon="showOnlyFavorites ? 'pi pi-star-fill' : 'pi pi-star'"
+              :severity="showOnlyFavorites ? 'warning' : 'secondary'" @click="toggleFavoritesFilter" />
+
+            <Button label="Limpiar" icon="pi pi-filter-slash" severity="secondary" text @click="clearFilters"
+              v-if="searchQuery || selectedTagFilter || showOnlyFavorites" />
           </div>
 
           <div class="notes-count">
@@ -54,7 +61,11 @@
       <Card v-for="note in notes" :key="note.id">
         <template #title>
           <div class="note-header">
-            <span>{{ note.title }}</span>
+            <div class="note-title-section">
+              <Button :icon="note.is_favorite ? 'pi pi-star-fill' : 'pi pi-star'" text rounded size="small"
+                :severity="note.is_favorite ? 'warning' : 'secondary'" @click="toggleFavorite(note.id)" />
+              <span>{{ note.title }}</span>
+            </div>
             <div class="note-actions">
               <Button icon="pi pi-pencil" size="small" text @click="openEditDialog(note)" />
               <Button icon="pi pi-trash" size="small" severity="danger" text @click="confirmDelete(note.id)" />
@@ -134,6 +145,17 @@ const newTagName = ref('')
 const searchQuery = ref('')
 const selectedTagFilter = ref(null)
 
+const showOnlyFavorites = ref(false)
+const sortBy = ref('date_desc')
+
+const sortOptions = [
+  { label: 'Más recientes', value: 'date_desc' },
+  { label: 'Más antiguas', value: 'date_asc' },
+  { label: 'Título A-Z', value: 'title_asc' },
+  { label: 'Título Z-A', value: 'title_desc' },
+  { label: 'Favoritas primero', value: 'favorites' }
+]
+
 const toast = useToast()
 const isCreating = ref(false)
 const isUpdating = ref(false)
@@ -163,7 +185,14 @@ const getTagColor = (tagId) => {
 
 const fetchNotes = async (params = {}) => {
   try {
-    const response = await api.get('/notes', { params })
+    // Agregar parámetros de ordenamiento y favoritos
+    const allParams = {
+      ...params,
+      sort: sortBy.value,
+      favorites: showOnlyFavorites.value
+    }
+
+    const response = await api.get('/notes', { params: allParams })
     notes.value = response.data
   } catch (error) {
     console.error('Error fetching notes:', error)
@@ -209,6 +238,8 @@ const quickFilterByTag = (tagId) => {
 const clearFilters = () => {
   searchQuery.value = ''
   selectedTagFilter.value = null
+  showOnlyFavorites.value = false
+  sortBy.value = 'date_desc'
   fetchNotes()
 }
 
@@ -376,6 +407,46 @@ const deleteNote = async (noteId) => {
     })
   }
 }
+const toggleFavorite = async (noteId) => {
+  try {
+    const response = await api.post(`/notes/${noteId}/toggle-favorite`)
+
+    // Mantener filtros activos después de actualizar
+    const params = {}
+    if (searchQuery.value) params.search = searchQuery.value
+    if (selectedTagFilter.value) params.tag = selectedTagFilter.value
+    fetchNotes(params)
+
+    toast.add({
+      severity: 'success',
+      summary: 'Actualizado',
+      detail: response.data.message,
+      life: 2000
+    })
+  } catch (error) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'No se pudo actualizar la nota',
+      life: 3000
+    })
+  }
+}
+
+const handleSortChange = () => {
+  const params = {}
+  if (searchQuery.value) params.search = searchQuery.value
+  if (selectedTagFilter.value) params.tag = selectedTagFilter.value
+  fetchNotes(params)
+}
+
+const toggleFavoritesFilter = () => {
+  showOnlyFavorites.value = !showOnlyFavorites.value
+  const params = {}
+  if (searchQuery.value) params.search = searchQuery.value
+  if (selectedTagFilter.value) params.tag = selectedTagFilter.value
+  fetchNotes(params)
+}
 
 onMounted(() => {
   fetchNotes()
@@ -480,5 +551,15 @@ onMounted(() => {
 
 .gap-3 {
   gap: 1rem;
+}
+
+.filter-item {
+  min-width: 180px;
+}
+
+.note-title-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 </style>
