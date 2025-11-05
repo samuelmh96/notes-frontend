@@ -8,6 +8,7 @@
 
       <!-- Desktop menu -->
       <div class="navbar-actions desktop-menu">
+        <Button icon="pi pi-chart-bar" text rounded @click="goToDashboard" v-tooltip.bottom="'Dashboard'" />
         <Button :icon="isDark ? 'pi pi-sun' : 'pi pi-moon'" text rounded @click="toggleDarkMode"
           v-tooltip.bottom="isDark ? 'Modo claro' : 'Modo oscuro'" />
         <span class="user-name">{{ authStore.user?.name }}</span>
@@ -51,6 +52,10 @@ const handleLogout = async () => {
   })
 
   router.push('/login')
+}
+
+const goToDashboard = () => {
+  router.push('/dashboard')
 }
 </script>
 
@@ -104,11 +109,11 @@ const handleLogout = async () => {
   .navbar-brand span {
     display: none;
   }
-  
+
   .desktop-menu {
     display: none;
   }
-  
+
   .navbar-content {
     padding: 0 15px;
   }

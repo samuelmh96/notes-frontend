@@ -17,11 +17,10 @@
                 </div>
 
                 <div class="menu-actions">
+                    <Button icon="pi pi-chart-bar" label="Dashboard" text @click="goToDashboard" class="menu-item" />
                     <Button :icon="isDark ? 'pi pi-sun' : 'pi pi-moon'" :label="isDark ? 'Modo claro' : 'Modo oscuro'"
                         text @click="toggleDarkMode" class="menu-item" />
-
                     <Button icon="pi pi-user" label="Mi perfil" text @click="goToProfile" class="menu-item" />
-
                     <Button icon="pi pi-sign-out" label="Cerrar sesión" text severity="danger" @click="handleLogout"
                         class="menu-item" />
                 </div>
@@ -63,6 +62,11 @@ const handleLogout = async () => {
     })
 
     router.push('/login')
+}
+
+const goToDashboard = () => {
+  visible.value = false
+  router.push('/dashboard')
 }
 </script>
 
