@@ -59,6 +59,12 @@
       </template>
     </Card>
 
+    <!-- Botón de exportación -->
+    <div class="export-section" v-if="notes.length > 0">
+      <Button label="Exportar notas" icon="pi pi-download" @click="toggleExportMenu" outlined />
+      <Menu ref="exportMenu" :model="exportMenuItems" :popup="true" />
+    </div>
+
     <div class="notes-list" v-if="notes.length > 0">
       <Card v-for="note in notes" :key="note.id">
         <template #title>
@@ -69,6 +75,8 @@
               <span>{{ note.title }}</span>
             </div>
             <div class="note-actions">
+              <Button icon="pi pi-file-pdf" size="small" text severity="secondary" @click="handleExportSingleNote(note)"
+                v-tooltip.bottom="'Exportar a PDF'" />
               <Button icon="pi pi-pencil" size="small" text @click="openEditDialog(note)" />
               <Button icon="pi pi-trash" size="small" severity="danger" text @click="confirmDelete(note.id)" />
             </div>
@@ -88,9 +96,9 @@
     <Paginator v-if="totalNotes > perPage" :rows="perPage" :totalRecords="totalNotes"
       :first="(currentPage - 1) * perPage" @page="handlePageChange" class="notes-paginator" />
 
-      <div v-if="notes.length === 0" class="empty-state">
-  <!-- ... -->
-</div>
+    <div v-if="notes.length === 0" class="empty-state">
+      <!-- ... -->
+    </div>
 
     <div v-else class="empty-state">
       <i class="pi pi-inbox" style="font-size: 3rem; color: #ccc;"></i>
@@ -145,6 +153,8 @@ import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import { useToast } from 'primevue/usetoast'
 import Toast from 'primevue/toast'
+import { exportNotesToPDF, exportSingleNoteToPDF, exportNotesToCSV } from '@/utils/exportNotes'
+import Menu from 'primevue/menu'
 
 const confirm = useConfirm()
 
@@ -163,6 +173,8 @@ const currentPage = ref(1)
 const perPage = ref(10)
 const totalNotes = ref(0)
 const lastPage = ref(1)
+
+const allNotes = ref([]) // Para guardar todas las notas sin paginar
 
 const perPageOptions = [
   { label: '5 por página', value: 5 },
@@ -195,6 +207,20 @@ const editingNote = ref({
   content: '',
   selectedTags: []
 })
+
+const exportMenu = ref()
+const exportMenuItems = ref([
+  {
+    label: 'Exportar a PDF',
+    icon: 'pi pi-file-pdf',
+    command: () => handleExportPDF()
+  },
+  {
+    label: 'Exportar a CSV',
+    icon: 'pi pi-file-excel',
+    command: () => handleExportCSV()
+  }
+])
 
 const tagFilterOptions = computed(() => {
   return availableTags.value
@@ -501,6 +527,134 @@ const handlePerPageChange = () => {
   fetchNotes(params)
 }
 
+const handleExportPDF = async () => {
+  if (totalNotes.value === 0) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Sin notas',
+      detail: 'No hay notas para exportar',
+      life: 3000
+    })
+    return
+  }
+  
+  try {
+    // Obtener TODAS las notas, no solo la página actual
+    const allNotesData = await fetchAllNotes()
+    
+    if (allNotesData.length === 0) {
+      toast.add({
+        severity: 'warn',
+        summary: 'Sin notas',
+        detail: 'No hay notas para exportar',
+        life: 3000
+      })
+      return
+    }
+    
+    exportNotesToPDF(allNotesData)
+    toast.add({
+      severity: 'success',
+      summary: 'PDF exportado',
+      detail: `${allNotesData.length} nota(s) exportada(s) correctamente`,
+      life: 3000
+    })
+  } catch (error) {
+    console.error('Error al exportar PDF:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.message || 'No se pudo exportar a PDF',
+      life: 3000
+    })
+  }
+}
+
+const handleExportCSV = async () => {
+  if (totalNotes.value === 0) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Sin notas',
+      detail: 'No hay notas para exportar',
+      life: 3000
+    })
+    return
+  }
+  
+  try {
+    // Obtener TODAS las notas, no solo la página actual
+    const allNotesData = await fetchAllNotes()
+    
+    if (allNotesData.length === 0) {
+      toast.add({
+        severity: 'warn',
+        summary: 'Sin notas',
+        detail: 'No hay notas para exportar',
+        life: 3000
+      })
+      return
+    }
+    
+    exportNotesToCSV(allNotesData)
+    toast.add({
+      severity: 'success',
+      summary: 'CSV exportado',
+      detail: `${allNotesData.length} nota(s) exportada(s) correctamente`,
+      life: 3000
+    })
+  } catch (error) {
+    console.error('Error al exportar CSV:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.message || 'No se pudo exportar a CSV',
+      life: 3000
+    })
+  }
+}
+
+const handleExportSingleNote = (note) => {
+  try {
+    exportSingleNoteToPDF(note)
+    toast.add({
+      severity: 'success',
+      summary: 'PDF exportado',
+      detail: `Nota "${note.title}" exportada`,
+      life: 3000
+    })
+  } catch (error) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'No se pudo exportar la nota',
+      life: 3000
+    })
+  }
+}
+
+const toggleExportMenu = (event) => {
+  exportMenu.value.toggle(event)
+}
+
+const fetchAllNotes = async () => {
+  try {
+    const allParams = {
+      sort: sortBy.value,
+      favorites: showOnlyFavorites.value,
+      per_page: 1000 // Obtener todas (límite alto)
+    }
+
+    if (searchQuery.value) allParams.search = searchQuery.value
+    if (selectedTagFilter.value) allParams.tag = selectedTagFilter.value
+
+    const response = await api.get('/notes', { params: allParams })
+    return response.data.data || response.data // Manejar respuesta paginada o no
+  } catch (error) {
+    console.error('Error fetching all notes:', error)
+    return []
+  }
+}
+
 onMounted(() => {
   fetchNotes()
   fetchTags()
@@ -644,6 +798,22 @@ onMounted(() => {
   gap: 1rem;
 }
 
+.export-section {
+  margin: 1rem 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 767px) {
+  .export-section {
+    justify-content: stretch;
+  }
+
+  .export-section button {
+    width: 100%;
+  }
+}
+
 /* Responsive Design */
 
 /* Tablets */
@@ -651,7 +821,7 @@ onMounted(() => {
   .notes-list {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .filter-bar {
     flex-wrap: nowrap;
   }
@@ -662,7 +832,7 @@ onMounted(() => {
   .notes-container {
     padding: 30px;
   }
-  
+
   .notes-list {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -680,36 +850,36 @@ onMounted(() => {
   .notes-container {
     padding: 15px;
   }
-  
+
   .search-card,
   .note-form {
     margin-bottom: 1rem;
   }
-  
+
   .filter-bar {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .filter-item {
     width: 100%;
     min-width: auto;
   }
-  
+
   .notes-count {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .per-page-selector {
     width: 100%;
   }
-  
+
   .tags-input-group {
     flex-direction: column;
   }
-  
-  .tags-input-group > * {
+
+  .tags-input-group>* {
     width: 100%;
   }
 }
