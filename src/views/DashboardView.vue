@@ -6,8 +6,11 @@
         <h1>📊 Dashboard</h1>
         <p>Resumen de tus notas</p>
       </div>
-
-      <div class="stats-grid" v-if="!loading">
+      <!-- Loading skeletons -->
+      <div class="stats-grid" v-if="loading">
+        <LoadingSkeleton type="stat" v-for="n in 3" :key="n" />
+      </div>
+      <div class="stats-grid" v-else>
         <!-- Card: Total de notas -->
         <Card class="stat-card">
           <template #content>
@@ -47,8 +50,21 @@
           </template>
         </Card>
       </div>
+      <!-- Loading skeletons para dashboard grid -->
+      <div class="dashboard-grid" v-if="loading">
+        <Card class="chart-card">
+          <template #content>
+            <div class="skeleton skeleton-card"></div>
+          </template>
+        </Card>
+        <Card class="list-card">
+          <template #content>
+            <LoadingSkeleton type="list" :count="5" />
+          </template>
+        </Card>
+      </div>
 
-      <div class="dashboard-grid" v-if="!loading">
+      <div class="dashboard-grid" v-else>
         <!-- Gráfico de notas por tag -->
         <Card class="chart-card">
           <template #title>Notas por Tag</template>
@@ -117,6 +133,7 @@ import Card from 'primevue/card'
 import Tag from 'primevue/tag'
 import ProgressSpinner from 'primevue/progressspinner'
 import Chart from 'primevue/chart'
+import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 
 const router = useRouter()
 const loading = ref(true)

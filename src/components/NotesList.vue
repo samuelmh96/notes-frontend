@@ -65,20 +65,29 @@
       <Menu ref="exportMenu" :model="exportMenuItems" :popup="true" />
     </div>
 
-    <div class="notes-list" v-if="notes.length > 0">
+    <!-- Loading skeletons -->
+    <div class="notes-list" v-if="isLoadingNotes">
+      <LoadingSkeleton type="note" v-for="n in perPage" :key="n" />
+    </div>
+
+    <!-- Lista de notas -->
+    <div class="notes-list" v-else-if="notes.length > 0">
       <Card v-for="note in notes" :key="note.id">
         <template #title>
           <div class="note-header">
             <div class="note-title-section">
               <Button :icon="note.is_favorite ? 'pi pi-star-fill' : 'pi pi-star'" text rounded size="small"
-                :severity="note.is_favorite ? 'warning' : 'secondary'" @click="toggleFavorite(note.id)" />
+                :severity="note.is_favorite ? 'warning' : 'secondary'" @click="toggleFavorite(note.id)"
+                v-tooltip.top="note.is_favorite ? 'Quitar de favoritos' : 'Marcar como favorito'" />
               <span>{{ note.title }}</span>
             </div>
             <div class="note-actions">
               <Button icon="pi pi-file-pdf" size="small" text severity="secondary" @click="handleExportSingleNote(note)"
                 v-tooltip.bottom="'Exportar a PDF'" />
-              <Button icon="pi pi-pencil" size="small" text @click="openEditDialog(note)" />
-              <Button icon="pi pi-trash" size="small" severity="danger" text @click="confirmDelete(note.id)" />
+              <Button icon="pi pi-pencil" size="small" text @click="openEditDialog(note)"
+                v-tooltip.bottom="'Editar nota'" />
+              <Button icon="pi pi-trash" size="small" severity="danger" text @click="confirmDelete(note)"
+                v-tooltip.bottom="'Eliminar nota'" />
             </div>
           </div>
         </template>
@@ -92,6 +101,12 @@
       </Card>
     </div>
 
+    <!-- Empty state -->
+    <div v-else class="empty-state">
+      <i class="pi pi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+      <p>No se encontraron notas</p>
+    </div>
+
     <!-- Agregar paginador aquí -->
     <Paginator v-if="totalNotes > perPage" :rows="perPage" :totalRecords="totalNotes"
       :first="(currentPage - 1) * perPage" @page="handlePageChange" class="notes-paginator" />
@@ -100,10 +115,6 @@
       <!-- ... -->
     </div>
 
-    <div v-else class="empty-state">
-      <i class="pi pi-inbox" style="font-size: 3rem; color: #ccc;"></i>
-      <p>No se encontraron notas</p>
-    </div>
 
     <!-- Dialog para crear nuevo tag -->
     <Dialog v-model:visible="showNewTagDialog" header="Crear nuevo Tag" :style="{ width: '25rem' }">
@@ -155,6 +166,8 @@ import { useToast } from 'primevue/usetoast'
 import Toast from 'primevue/toast'
 import { exportNotesToPDF, exportSingleNoteToPDF, exportNotesToCSV } from '@/utils/exportNotes'
 import Menu from 'primevue/menu'
+import LoadingSkeleton from './LoadingSkeleton.vue'
+import Tooltip from 'primevue/tooltip'
 
 const confirm = useConfirm()
 
@@ -175,6 +188,8 @@ const totalNotes = ref(0)
 const lastPage = ref(1)
 
 const allNotes = ref([]) // Para guardar todas las notas sin paginar
+const isLoadingNotes = ref(false)
+const vTooltip = Tooltip
 
 const perPageOptions = [
   { label: '5 por página', value: 5 },
@@ -233,6 +248,7 @@ const getTagColor = (tagId) => {
 }
 
 const fetchNotes = async (params = {}) => {
+  isLoadingNotes.value = true
   try {
     const allParams = {
       ...params,
@@ -244,13 +260,14 @@ const fetchNotes = async (params = {}) => {
 
     const response = await api.get('/notes', { params: allParams })
 
-    // Laravel paginate devuelve un objeto con data, meta, links
     notes.value = response.data.data
     totalNotes.value = response.data.total
     lastPage.value = response.data.last_page
     currentPage.value = response.data.current_page
   } catch (error) {
     console.error('Error fetching notes:', error)
+  } finally {
+    isLoadingNotes.value = false
   }
 }
 
@@ -427,15 +444,16 @@ const updateNote = async () => {
   }
 }
 
-const confirmDelete = (noteId) => {
+const confirmDelete = (note) => {
   confirm.require({
-    message: '¿Estás seguro de eliminar esta nota?',
-    header: 'Confirmar eliminación',
+    message: `¿Estás seguro de eliminar la nota "${note.title}"?`,
+    header: '⚠️ Confirmar eliminación',
     icon: 'pi pi-exclamation-triangle',
     acceptLabel: 'Sí, eliminar',
     rejectLabel: 'Cancelar',
+    acceptClass: 'p-button-danger',
     accept: () => {
-      deleteNote(noteId)
+      deleteNote(note.id)
     }
   })
 }
@@ -537,11 +555,11 @@ const handleExportPDF = async () => {
     })
     return
   }
-  
+
   try {
     // Obtener TODAS las notas, no solo la página actual
     const allNotesData = await fetchAllNotes()
-    
+
     if (allNotesData.length === 0) {
       toast.add({
         severity: 'warn',
@@ -551,7 +569,7 @@ const handleExportPDF = async () => {
       })
       return
     }
-    
+
     exportNotesToPDF(allNotesData)
     toast.add({
       severity: 'success',
@@ -580,11 +598,11 @@ const handleExportCSV = async () => {
     })
     return
   }
-  
+
   try {
     // Obtener TODAS las notas, no solo la página actual
     const allNotesData = await fetchAllNotes()
-    
+
     if (allNotesData.length === 0) {
       toast.add({
         severity: 'warn',
@@ -594,7 +612,7 @@ const handleExportCSV = async () => {
       })
       return
     }
-    
+
     exportNotesToCSV(allNotesData)
     toast.add({
       severity: 'success',
